@@ -1,10 +1,10 @@
-from .views import DeviceViewSet, OptimizerFileViewSet, TableViewSet
+from .views import OptimizerFileViewSet, TableViewSet, FieldsViewSet
 from django.urls import include, path
 from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register("device", DeviceViewSet, basename="device")
 router.register("table", TableViewSet, basename="table")
+router.register("fields", FieldsViewSet, basename="fields")
 
 urlpatterns = [
     path("", include(router.urls)),

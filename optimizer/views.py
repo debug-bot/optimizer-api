@@ -1,5 +1,3 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -14,26 +12,10 @@ import pandas as pd
 from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg.utils import swagger_auto_schema
 from . import swagger_params
-
-
-# Create your views here.
-class DeviceViewSet(viewsets.ViewSet):
-    authentication_classes = []
-    # permission_classes = (permissions.IsAuthenticated,)
-
-    def list(self, request):
-        parameters = ["length", "width", "instep", "modelname", "brandname"]
-        for parameter in parameters:
-            if parameter not in request.query_params:
-                return Response(
-                    {
-                        "error": "{} is not present in parameters".format(parameter),
-                        "solution": "length, width, instep, modelname and brandname are needed parameters",
-                        "success": False,
-                        "parameters": request.query_params,
-                    }
-                )
-        return Response({"success": True, "parameters": request.query_params})
+from .data.filter import filter_data
+from .data.constraints import constraints_data
+from .data.esg_constraints import esg_constraints_data
+from rest_framework.decorators import action
 
 
 class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
@@ -110,3 +92,30 @@ class TableViewSet(viewsets.ViewSet):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class FieldsViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(method="get", responses={200: "Success"})
+    @action(detail=False, methods=["get"])
+    def filter_api(self, request):
+        data = filter_data
+        return Response(data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(method="get", responses={200: "Success"})
+    @action(detail=False, methods=["get"])
+    def constraints_api(self, request):
+        data = constraints_data
+        return Response(data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(method="get", responses={200: "Success"})
+    @action(detail=False, methods=["get"])
+    def esg_constraints_api(self, request):
+        data = esg_constraints_data
+        return Response(data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(method="post", responses={200: "Success"})
+    @action(detail=False, methods=["post"])
+    def objective_api(self, request):
+        data = request.data
+        print(data)
+        return Response(data, status=status.HTTP_200_OK)
