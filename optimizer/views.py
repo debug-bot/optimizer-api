@@ -26,7 +26,7 @@ class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
 
     def post(self, request):
         """This method is used to Make POST requests to save a file in the media folder"""
-        file_serializer = self.get_serializer(data=request.data)
+        file_serializer = self.get_serializer(OptimizerFile.objects.filter(user=request.user).first(), data=request.data)
         if file_serializer.is_valid():
             instance = file_serializer.save(user=request.user)
             return Response({"success": True})
@@ -41,6 +41,11 @@ class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
 class TableViewSet(viewsets.ViewSet):
     # authentication_classes = []
     permission_classes = (permissions.IsAuthenticated,)
+    # filter_backends = (DjangoFilterBackend,)
+    # filterset_fields = "__all__"
+    # sorting of fields
+    # ordering_fields = "__all__"
+    
 
     @swagger_auto_schema(manual_parameters=swagger_params.table_params)
     def list(self, request):

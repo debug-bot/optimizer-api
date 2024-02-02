@@ -32,8 +32,14 @@ DEBUG = env.bool("DEBUG", default=True)
 SECRET_KEY = env("SECRET_KEY")
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+# csrf trusted origins
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000/", "http://localhost:3000/"]
+
+# csrf allow all origins whitelist
+
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
 
 # Application definition
 
@@ -69,6 +75,9 @@ SWAGGER_SETTINGS = {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
     }
 }
+
+
+
 
 ROOT_URLCONF = "core.urls"
 
