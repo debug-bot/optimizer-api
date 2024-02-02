@@ -15,6 +15,8 @@ from . import swagger_params
 from .data.filter import filter_data
 from .data.constraints import constraints_data
 from .data.esg_constraints import esg_constraints_data
+from .data.result import result_data
+from .data.summary import summary_data
 from rest_framework.decorators import action
 
 
@@ -79,8 +81,9 @@ class TableViewSet(viewsets.ViewSet):
             ordering_field = request.GET.get("ordering")
             if ordering_field:
                 ascending = True if ordering_field[0] != "-" else False
+                ordering_field = ordering_field.strip("-")
                 data_frame = data_frame.sort_values(
-                    ordering_field.strip("-"), ascending=ascending
+                    ordering_field, ascending=ascending
                 )
 
             # Pagination
@@ -135,10 +138,22 @@ class FieldsViewSet(viewsets.ViewSet):
     def esg_constraints_api(self, request):
         data = esg_constraints_data
         return Response(data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(method="get", responses={200: "Success"})
+    @action(detail=False, methods=["get"])
+    def result_api(self, request):
+        data = result_data
+        return Response(data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(method="get", responses={200: "Success"})
+    @action(detail=False, methods=["get"])
+    def summary_api(self, request):
+        data = summary_data
+        return Response(data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(method="post", responses={200: "Success"})
     @action(detail=False, methods=["post"])
-    def objective_api(self, request):
+    def run_optimizer(self, request):
         data = request.data
         print(data)
         return Response(data, status=status.HTTP_200_OK)
