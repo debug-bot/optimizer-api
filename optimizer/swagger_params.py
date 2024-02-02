@@ -13,4 +13,16 @@ table_params = [
         type=openapi.TYPE_NUMBER,
         description="Number of records per page",
     ),
+    openapi.Parameter(
+        "search",
+        openapi.IN_QUERY,
+        type=openapi.TYPE_STRING,
+        description="Search query",
+    ),
+    openapi.Parameter(
+        "ordering",
+        openapi.IN_QUERY,
+        type=openapi.TYPE_STRING,
+        description="Ordering field",
+    ),
 ]
