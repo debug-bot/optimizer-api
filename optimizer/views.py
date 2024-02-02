@@ -59,6 +59,9 @@ class TableViewSet(viewsets.ViewSet):
 
             # Replace NaN with 0
             data_frame = data_frame.fillna(0)
+            
+            # Normalize column names
+            data_frame.columns = [col.lower().replace(" ", "_") for col in data_frame.columns]
 
 
             # Search
