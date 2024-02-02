@@ -9,7 +9,7 @@ class UserViewSet(viewsets.ViewSet):
     """
     A simple ViewSet for logging users in.
     """
-    
+
     authentication_classes = []
 
     @swagger_auto_schema(

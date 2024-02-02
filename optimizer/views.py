@@ -26,7 +26,9 @@ class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
 
     def post(self, request):
         """This method is used to Make POST requests to save a file in the media folder"""
-        file_serializer = self.get_serializer(OptimizerFile.objects.filter(user=request.user).first(), data=request.data)
+        file_serializer = self.get_serializer(
+            OptimizerFile.objects.filter(user=request.user).first(), data=request.data
+        )
         if file_serializer.is_valid():
             instance = file_serializer.save(user=request.user)
             return Response({"success": True})
@@ -41,11 +43,6 @@ class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
 class TableViewSet(viewsets.ViewSet):
     # authentication_classes = []
     permission_classes = (permissions.IsAuthenticated,)
-    # filter_backends = (DjangoFilterBackend,)
-    # filterset_fields = "__all__"
-    # sorting of fields
-    # ordering_fields = "__all__"
-    
 
     @swagger_auto_schema(manual_parameters=swagger_params.table_params)
     def list(self, request):
@@ -63,11 +60,25 @@ class TableViewSet(viewsets.ViewSet):
             # Replace NaN with 0
             data_frame = data_frame.fillna(0)
 
-            print(data_frame.head())
-            total_count = len(data_frame)
+
+            # Search
+            search_query = request.GET.get("search")
+            if search_query:
+                data_frame = data_frame[
+                    data_frame.apply(
+                        lambda row: row.astype(str).str.contains(search_query).any(),
+                        axis=1,
+                    )
+                ]
+
+            # Ordering
+            ordering_field = request.GET.get("ordering")
+            if ordering_field:
+                data_frame = data_frame.sort_values(ordering_field)
 
             # Pagination
-            per_page = int(request.GET.get("per_page", 25))
+            total_count = len(data_frame)
+            per_page = int(request.GET.get("per_page", 10))
             page = int(request.GET.get("page", 1))
             paginator = Paginator(data_frame.to_dict(orient="records"), per_page)
 
