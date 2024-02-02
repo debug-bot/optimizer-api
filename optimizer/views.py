@@ -59,10 +59,11 @@ class TableViewSet(viewsets.ViewSet):
 
             # Replace NaN with 0
             data_frame = data_frame.fillna(0)
-            
-            # Normalize column names
-            data_frame.columns = [col.lower().replace(" ", "_") for col in data_frame.columns]
 
+            # Normalize column names
+            data_frame.columns = [
+                col.lower().replace(" ", "_") for col in data_frame.columns
+            ]
 
             # Search
             search_query = request.GET.get("search")
@@ -77,7 +78,10 @@ class TableViewSet(viewsets.ViewSet):
             # Ordering
             ordering_field = request.GET.get("ordering")
             if ordering_field:
-                data_frame = data_frame.sort_values(ordering_field)
+                ascending = True if ordering_field[0] != "-" else False
+                data_frame = data_frame.sort_values(
+                    ordering_field.strip("-"), ascending=ascending
+                )
 
             # Pagination
             total_count = len(data_frame)
