@@ -992,7 +992,17 @@ class optimizerAPP(ipw.VBox,ipw.HBox):
             self.widgets["RUN"].disabled = True
 
             metrics,buffers,filters_metrics,filters_groups = self.read_ui()
-
+            
+            # save all above prints to a txt file
+            with open('metrics.py', 'w') as f:
+                print('metrics=',metrics, file=f)
+                print('buffers=',buffers, file=f)
+                print('filters_metrics=',filters_metrics, file=f)
+                print('filters_groups=',filters_groups, file=f)
+                
+                
+            
+            
             if metrics['MaxMin'] == 'Maximize':
                 maxmin = True
             else:
