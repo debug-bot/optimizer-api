@@ -173,6 +173,8 @@ class Optimizer(Constraint):
         df['initial_wt']=np.round(df['Notional Amount']/df['Notional Amount'].sum(),4)*1
 
         soln=np.array(x.value)
+        
+        print('soln: ',soln, x.value,x, len(df))
 
         df['final_wt']=list(np.round(soln,4).ravel()*1)
         df['final']=np.round(df['final_wt']*total,8)

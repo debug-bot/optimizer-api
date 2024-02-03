@@ -18,6 +18,7 @@ from .data.esg_constraints import esg_constraints_data
 from .data.result import result_data
 from .data.summary import summary_data
 from rest_framework.decorators import action
+from .opt_data import opt_data
 
 
 class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
@@ -82,9 +83,7 @@ class TableViewSet(viewsets.ViewSet):
             if ordering_field:
                 ascending = True if ordering_field[0] != "-" else False
                 ordering_field = ordering_field.strip("-")
-                data_frame = data_frame.sort_values(
-                    ordering_field, ascending=ascending
-                )
+                data_frame = data_frame.sort_values(ordering_field, ascending=ascending)
 
             # Pagination
             total_count = len(data_frame)
@@ -119,7 +118,8 @@ class TableViewSet(viewsets.ViewSet):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
+from .src.test import OptimizerApp
+from .src.metrics import metrics, buffers, filters_metrics, filters_groups 
 class FieldsViewSet(viewsets.ViewSet):
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
@@ -138,13 +138,13 @@ class FieldsViewSet(viewsets.ViewSet):
     def esg_constraints_api(self, request):
         data = esg_constraints_data
         return Response(data, status=status.HTTP_200_OK)
-    
+
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
     def result_api(self, request):
         data = result_data
         return Response(data, status=status.HTTP_200_OK)
-    
+
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
     def summary_api(self, request):
@@ -154,6 +154,21 @@ class FieldsViewSet(viewsets.ViewSet):
     @swagger_auto_schema(method="post", responses={200: "Success"})
     @action(detail=False, methods=["post"])
     def run_optimizer(self, request):
+        file = OptimizerFile.objects.filter(user=request.user).first()
+        # read this csv file
+        df = pd.read_csv(file.file)
+        print(df.head())
+
         data = request.data
-        print(data)
-        return Response(data, status=status.HTTP_200_OK)
+        (
+            metrics,
+            buffers,
+            filters_metrics,
+            filters_groups,
+        ) = opt_data(data)
+        
+        # print(data)
+        app = OptimizerApp()
+        optimizer_data = app.get_optimizer_data(metrics, buffers, filters_metrics, filters_groups, 'Simulation', df)
+        print(optimizer_data['sectors'])
+        return Response(optimizer_data, status=status.HTTP_200_OK)
