@@ -19,7 +19,7 @@ from .data.result import result_data
 from .data.summary import summary_data
 from rest_framework.decorators import action
 from .opt_data import opt_data
-
+from .src.metrics import metrics, buffers, filters_metrics, filters_groups
 
 class OptimizerFileViewSet(generics.CreateAPIView, generics.RetrieveAPIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -147,6 +147,17 @@ class FieldsViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
+    def starting_api(self, request):
+        file = OptimizerFile.objects.filter(user=request.user).first()
+        
+        df = pd.read_csv(file.file)
+        optimizer = OptimizerApp()
+        starting_data = optimizer.get_starting_data(df)
+
+        return Response(starting_data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(method="get", responses={200: "Success"})
+    @action(detail=False, methods=["get"])
     def summary_api(self, request):
         data = summary_data
         return Response(data, status=status.HTTP_200_OK)
@@ -157,6 +168,7 @@ class FieldsViewSet(viewsets.ViewSet):
         file = OptimizerFile.objects.filter(user=request.user).first()
         # read this csv file
         df = pd.read_csv(file.file)
+
         print(df.head())
 
         data = request.data
@@ -166,9 +178,11 @@ class FieldsViewSet(viewsets.ViewSet):
             filters_metrics,
             filters_groups,
         ) = opt_data(data)
-        
-        # print(data)
         app = OptimizerApp()
-        optimizer_data = app.get_optimizer_data(metrics, buffers, filters_metrics, filters_groups, 'Simulation', df)
-        print(optimizer_data['sectors'])
+        s_name = 'Simulation'
+
+        optimizer_data = app.get_optimizer_data(
+            metrics, buffers, filters_metrics, filters_groups, s_name, df
+        )
+
         return Response(optimizer_data, status=status.HTTP_200_OK)

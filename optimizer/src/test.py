@@ -4,14 +4,13 @@ import plotly.graph_objects as go
 import numpy as np
 from ipywidgets import GridspecLayout, AppLayout, Layout, HBox
 from ipydatagrid import DataGrid
-from optimizer import *
+from .optimizer import Optimizer
 import plotly.io as pio
 from IPython.display import display, HTML
 import io
 import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from output import *
 
 
 import warnings
@@ -50,7 +49,6 @@ maturity_order = [
     "Greater than 10y",
 ]
 esg_order = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC"]
-
 
 
 def flatten_double_dict(dictionary, parent_key="", sep="_"):
@@ -158,11 +156,11 @@ class OptimizerApp:
         )
         self.df_1 = self.df_1.reset_index()
         self.df_1 = self.df_1.rename(columns={"Sector": "Sector of bonds"})
-        self.df_1 = self.df_1.set_index("Sector of bonds")
+        # self.df_1 = self.df_1.set_index("Sector of bonds")
 
         self.df_1["Percentage before optimization"] = self.df_1[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
 
         self.df_2 = (
             pd.DataFrame(
@@ -176,7 +174,7 @@ class OptimizerApp:
 
         self.df_2["Percentage before optimization"] = self.df_2[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
 
         self.df_3 = (
             pd.DataFrame(
@@ -190,7 +188,7 @@ class OptimizerApp:
 
         self.df_3["Percentage before optimization"] = self.df_3[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
         self.df_3 = self.df_3.reindex(bond_rating_order)
 
         self.df_4 = (
@@ -205,7 +203,7 @@ class OptimizerApp:
 
         self.df_4["Percentage before optimization"] = self.df_4[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
         self.df_4 = self.df_4.reindex(esg_order)
 
         self.df_5 = (
@@ -220,7 +218,7 @@ class OptimizerApp:
 
         self.df_5["Percentage before optimization"] = self.df_5[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
 
         self.df_6 = (
             pd.DataFrame(
@@ -234,7 +232,7 @@ class OptimizerApp:
 
         self.df_6["Percentage before optimization"] = self.df_6[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
         self.df_6 = self.df_6.reindex(maturity_order)
 
         self.df_7 = (
@@ -249,7 +247,7 @@ class OptimizerApp:
 
         self.df_7["Percentage before optimization"] = self.df_7[
             "Percentage before optimization"
-        ].apply(lambda x: f"{np.round(x,2)}%")
+        ].apply(lambda x: np.round(x,2))
 
         # if 'Cashflow' in self.df.columns:
         #     self.df_9 = self.df.drop_duplicates(subset=["MaturityYear"])[["MaturityYear","Cashflow"]].sort_values(by="MaturityYear").set_index('MaturityYear').rename(columns={"Cashflow":"Cashflow before optimization"})
@@ -263,58 +261,61 @@ class OptimizerApp:
         # else:
         #     self.widgets["CashFlows_"] = ipw.Output()
 
-        self.df_8 = (
-            pd.DataFrame(
-                {
-                    "Metrics": [
-                        "Yield",
-                        "Duration",
-                        "Maturity",
-                        "ESG_SCORE",
-                        "CI",
-                        "Decarb",
-                        "WARF",
-                    ],
-                    "Average": [
-                        (self.df["Yield"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                        # (self.df["Curr. Spread"] *  self.df['Notional Amount']).sum()/self.df['Notional Amount'].sum(),
-                        (self.df["Duration"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                        (self.df["YTM"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                        # (self.df["SRC"] *  self.df['Notional Amount']).sum()/self.df['Notional Amount'].sum(),
-                        (self.df["ESG_SCORE"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                        (self.df["CI"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                        (self.df["Decarb"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                        (self.df["WARF"] * self.df["Notional Amount"]).sum()
-                        / self.df["Notional Amount"].sum(),
-                    ],
-                }
-            )
-            .rename(columns={"Average": "Average before optimization"})
-            .set_index("Metrics")
-        )
-        self.df_8 = self.df_8.apply(lambda x: np.round(x, 2))
+        self.df_8 = pd.DataFrame(
+            {
+                "Metrics": [
+                    "Yield",
+                    "Duration",
+                    "Maturity",
+                    "ESG_SCORE",
+                    "CI",
+                    "Decarb",
+                    "WARF",
+                ],
+                "Average": [
+                    (self.df["Yield"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                    # (self.df["Curr. Spread"] *  self.df['Notional Amount']).sum()/self.df['Notional Amount'].sum(),
+                    (self.df["Duration"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                    (self.df["YTM"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                    # (self.df["SRC"] *  self.df['Notional Amount']).sum()/self.df['Notional Amount'].sum(),
+                    (self.df["ESG_SCORE"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                    (self.df["CI"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                    (self.df["Decarb"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                    (self.df["WARF"] * self.df["Notional Amount"]).sum()
+                    / self.df["Notional Amount"].sum(),
+                ],
+            }
+        ).rename(columns={"Average": "Average before optimization"})
+        # round to 2 decimal places Average before optimization
+        self.df_8["Average before optimization"] = self.df_8[
+            "Average before optimization"
+        ].apply(lambda x: np.round(x, 2))
 
         return self.get_data()
 
     def get_data(self):
 
         try:
-            sectors = self.df_1.to_dict(orient="records")
-            seniorities = self.df_2.to_dict(orient="records")
-            ratings = self.df_3.to_dict(orient="records")
-            esg_ratings = self.df_4.to_dict(orient="records")
-            countries = self.df_5.to_dict(orient="records")
-            maturities = self.df_6.to_dict(orient="records")
-            tickers = self.df_7.to_dict(orient="records")
-            comparison = self.df_8.to_dict(orient="records")
+            
+            
+            
+            
+            sectors = self.df_1.reset_index().rename(columns={"Sector of bonds_x": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            seniorities = self.df_2.reset_index().rename(columns={"Seniority": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            ratings = self.df_3.reset_index().rename(columns={"SBR": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            esg_ratings = self.df_4.reset_index().rename(columns={"ESG_RATING": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            countries = self.df_5.reset_index().rename(columns={"Issuer Country": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            maturities = self.df_6.reset_index().rename(columns={"MaturityB": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            tickers = self.df_7.reset_index().rename(columns={"Ticker": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            comparison = self.df_8.reset_index().rename(columns={"Metrics_x": "name"}).to_dict(orient="records")
             try:
-                history = self.hist_df.to_dict(orient="records")
+                history = self.hist_df.reset_index().to_dict(orient="records")
             except:
                 history = []
 
@@ -360,7 +361,12 @@ class OptimizerApp:
         self.filters_metrics = filters_metrics
         self.filters_groups = filters_groups
         self.simulation_name = simulation_name
-        self.run_optimizer()
+        try:
+            self.run_optimizer()
+        except Exception as e:
+            self.error = f"An error occurred: {str(e)}"
+            self.message = "Optimization failed. Please try again."
+            print(f"An error occurred: {str(e)}")
         return self.get_data()
 
     def read_data(self):
@@ -368,24 +374,24 @@ class OptimizerApp:
 
     def run_optimizer(self):
 
-        try:
+        # try:
 
-            metrics, buffers, filters_metrics, filters_groups = self.read_data()
+        metrics, buffers, filters_metrics, filters_groups = self.read_data()
 
-            # save all above prints to a txt file
-            # with open('metrics.py', 'w') as f:
-            #     print('metrics=',metrics, file=f)
-            #     print('buffers=',buffers, file=f)
-            #     print('filters_metrics=',filters_metrics, file=f)
-            #     print('filters_groups=',filters_groups, file=f)
+        # save all above prints to a txt file
+        # with open('metrics.py', 'w') as f:
+        #     print('metrics=',metrics, file=f)
+        #     print('buffers=',buffers, file=f)
+        #     print('filters_metrics=',filters_metrics, file=f)
+        #     print('filters_groups=',filters_groups, file=f)
 
-            if metrics["MaxMin"] == "Maximize":
-                maxmin = True
-            else:
-                maxmin = False
+        if metrics["MaxMin"] == "Maximize":
+            maxmin = True
+        else:
+            maxmin = False
 
-            df_filtered = self.df.copy()
-            df_filtered = df_filtered[
+        df_filtered = self.df.copy()
+        df_filtered = df_filtered[
                 (df_filtered["Yield"] <= filters_metrics["Yield_upper_filter"])
                 & (df_filtered["Yield"] >= filters_metrics["Yield_lower_filter"])
                 & (
@@ -416,14 +422,14 @@ class OptimizerApp:
                 & (df_filtered["WARF"] >= filters_metrics["WARF_lower_filter"])
             ]
 
-            for key, subdict in filters_groups.items():
-                filters_groups[key] = [x for x in subdict.keys() if subdict[x] is True]
+        for key, subdict in filters_groups.items():
+            filters_groups[key] = [x for x in subdict.keys() if subdict[x] is True]
 
-            subkeys_to_keep = [
+        subkeys_to_keep = [
                 value for sublist in filters_groups.values() for value in sublist
             ]
 
-            filtered_buffers = {
+        filtered_buffers = {
                 key: {
                     subkey: buffers[key][subkey]
                     for subkey in subkeys_to_keep
@@ -432,10 +438,10 @@ class OptimizerApp:
                 for key in buffers
             }
 
-            # if 'Cashflow' in self.df.columns:
-            #     filtered_buffers['buffer_Cashflows'] = buffers['buffer_Cashflows']
+        # if 'Cashflow' in self.df.columns:
+        #     filtered_buffers['buffer_Cashflows'] = buffers['buffer_Cashflows']
 
-            df_filtered = df_filtered[
+        df_filtered = df_filtered[
                 (df_filtered["Sector"].isin(filters_groups["Sectors_filter"]))
                 & (df_filtered["SBR"].isin(filters_groups["Ratings_filter"]))
                 & (df_filtered["Seniority"].isin(filters_groups["Seniority_filter"]))
@@ -445,7 +451,7 @@ class OptimizerApp:
                 & (df_filtered["Ticker"].isin(filters_groups["Ticker_filter"]))
             ]
 
-            OP = Optimizer(
+        OP = Optimizer(
                 thresholds={
                     "Yield": [metrics["Yield_lower"], metrics["Yield_upper"]],
                     "Spreads": [metrics["Spread_lower"], metrics["Spread_upper"]],
@@ -472,8 +478,8 @@ class OptimizerApp:
                 fixed_size=metrics["fixed_size"],
             )
 
-            if "Cashflow" in self.df.columns:
-                output, too_strict, order, multi, bounds = OP.optimize(
+        if "Cashflow" in self.df.columns:
+            output, too_strict, order, multi, bounds = OP.optimize(
                     df_filtered.copy(),
                     total=metrics["size"],
                     var=metrics["Objet"],
@@ -482,8 +488,8 @@ class OptimizerApp:
                     output_strict=True,
                     constraints=["buffer_Sectors"],
                 )
-            else:
-                output, too_strict, order, multi, bounds = OP.optimize(
+        else:
+            output, too_strict, order, multi, bounds = OP.optimize(
                     df_filtered.copy(),
                     total=metrics["size"],
                     var=metrics["Objet"],
@@ -512,26 +518,26 @@ class OptimizerApp:
                     ],
                 )
 
-            log = {}
+        log = {}
 
-            metrics["turnover_lower"] = metrics["turnover"][0]
-            metrics["turnover_upper"] = metrics["turnover"][1]
-            del metrics["turnover"]
+        metrics["turnover_lower"] = metrics["turnover"][0]
+        metrics["turnover_upper"] = metrics["turnover"][1]
+        del metrics["turnover"]
 
-            if too_strict == 0:
+        if too_strict == 0:
 
-                self.output_df = output
+            self.output_df = output
 
-                df_1 = (
+            df_1 = (
                     pd.DataFrame(output.groupby(["Sector"])["final_wt"].sum() * 100)
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                df_1 = df_1.reset_index()
-                df_1 = df_1.rename(columns={"Sector": "Sector of bonds"})
-                df_1 = df_1.set_index("Sector of bonds")
-                fig1 = go.Figure()
-                self.df_1 = (
+            df_1 = df_1.reset_index()
+            df_1 = df_1.rename(columns={"Sector": "Sector of bonds"})
+            # df_1 = df_1.set_index("Sector of bonds")
+            fig1 = go.Figure()
+            self.df_1 = (
                     pd.DataFrame(
                         output.groupby(["Sector"])["Notional Amount"].sum()
                         * 100
@@ -543,25 +549,25 @@ class OptimizerApp:
                     .sort_values("Percentage before optimization", ascending=False)
                     .dropna()
                 )
-                self.df_1["Percentage before optimization"] = self.df_1[
+            self.df_1["Percentage before optimization"] = self.df_1[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                self.df_1 = self.df_1.reset_index()
-                self.df_1 = self.df_1.rename(columns={"Sector": "Sector of bonds"})
-                self.df_1 = self.df_1.set_index("Sector of bonds")
+                ].apply(lambda x: np.round(x,2))
+            self.df_1 = self.df_1.reset_index()
+            self.df_1 = self.df_1.rename(columns={"Sector": "Sector of bonds"})
+            # self.df_1 = self.df_1.set_index("Sector of bonds")
 
-                df_1["Percentage after optimization"] = df_1[
+            df_1["Percentage after optimization"] = df_1[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_1 = pd.merge(self.df_1, df_1, left_index=True, right_index=True)
-                df_1 = df_1.rename(index={"Sector": "Sector of bonds"})
+                ].apply(lambda x: np.round(x,2))
+            df_1 = pd.merge(self.df_1, df_1, left_index=True, right_index=True)
+            df_1 = df_1.rename(index={"Sector": "Sector of bonds"})
 
-                df_2 = (
+            df_2 = (
                     pd.DataFrame(output.groupby(["Seniority"])["final_wt"].sum() * 100)
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                self.df_2 = (
+            self.df_2 = (
                     pd.DataFrame(
                         output.groupby(["Seniority"])["Notional Amount"].sum()
                         * 100
@@ -573,21 +579,21 @@ class OptimizerApp:
                     .sort_values("Percentage before optimization", ascending=False)
                     .dropna()
                 )
-                self.df_2["Percentage before optimization"] = self.df_2[
+            self.df_2["Percentage before optimization"] = self.df_2[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
+                ].apply(lambda x: np.round(x,2))
 
-                df_2["Percentage after optimization"] = df_2[
+            df_2["Percentage after optimization"] = df_2[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_2 = pd.merge(self.df_2, df_2, left_index=True, right_index=True)
+                ].apply(lambda x: np.round(x,2))
+            df_2 = pd.merge(self.df_2, df_2, left_index=True, right_index=True)
 
-                df_3 = (
+            df_3 = (
                     pd.DataFrame(output.groupby(["SBR"])["final_wt"].sum() * 100)
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                self.df_3 = (
+            self.df_3 = (
                     pd.DataFrame(
                         output.groupby(["SBR"])["Notional Amount"].sum()
                         * 100
@@ -598,22 +604,22 @@ class OptimizerApp:
                     )
                     .sort_values("Percentage before optimization", ascending=False)
                 )
-                self.df_3["Percentage before optimization"] = self.df_3[
+            self.df_3["Percentage before optimization"] = self.df_3[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                self.df_3 = self.df_3.reindex(bond_rating_order).dropna()
+                ].apply(lambda x: np.round(x,2))
+            self.df_3 = self.df_3.reindex(bond_rating_order).dropna()
 
-                df_3["Percentage after optimization"] = df_3[
+            df_3["Percentage after optimization"] = df_3[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_3 = pd.merge(self.df_3, df_3, left_index=True, right_index=True)
+                ].apply(lambda x: np.round(x,2))
+            df_3 = pd.merge(self.df_3, df_3, left_index=True, right_index=True)
 
-                df_4 = (
+            df_4 = (
                     pd.DataFrame(output.groupby(["ESG_RATING"])["final_wt"].sum() * 100)
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                self.df_4 = (
+            self.df_4 = (
                     pd.DataFrame(
                         output.groupby(["ESG_RATING"])["Notional Amount"].sum()
                         * 100
@@ -624,27 +630,27 @@ class OptimizerApp:
                     )
                     .sort_values("Percentage before optimization", ascending=False)
                 )
-                self.df_4["Percentage before optimization"] = self.df_4[
+            self.df_4["Percentage before optimization"] = self.df_4[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                self.df_4 = self.df_4.reindex(esg_order).dropna()
+                ].apply(lambda x: np.round(x,2))
+            self.df_4 = self.df_4.reindex(esg_order).dropna()
 
-                df_4["Percentage after optimization"] = df_4[
+            df_4["Percentage after optimization"] = df_4[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_4 = pd.merge(self.df_4, df_4, left_index=True, right_index=True)
+                ].apply(lambda x: np.round(x,2))
+            df_4 = pd.merge(self.df_4, df_4, left_index=True, right_index=True)
 
-                df_5 = (
+            df_5 = (
                     pd.DataFrame(
                         output.groupby(["Issuer Country"])["final_wt"].sum() * 100
                     )
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                df_5["Percentage after optimization"] = df_5[
+            df_5["Percentage after optimization"] = df_5[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                self.df_5 = (
+                ].apply(lambda x: np.round(x,2))
+            self.df_5 = (
                     pd.DataFrame(
                         output.groupby(["Issuer Country"])["Notional Amount"].sum()
                         * 100
@@ -656,17 +662,17 @@ class OptimizerApp:
                     .sort_values("Percentage before optimization", ascending=False)
                     .dropna()
                 )
-                self.df_5["Percentage before optimization"] = self.df_5[
+            self.df_5["Percentage before optimization"] = self.df_5[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_5 = pd.merge(self.df_5, df_5, left_index=True, right_index=True)
+                ].apply(lambda x: np.round(x,2))
+            df_5 = pd.merge(self.df_5, df_5, left_index=True, right_index=True)
 
-                df_6 = (
+            df_6 = (
                     pd.DataFrame(output.groupby(["MaturityB"])["final_wt"].sum() * 100)
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                self.df_6 = (
+            self.df_6 = (
                     pd.DataFrame(
                         output.groupby(["MaturityB"])["Notional Amount"].sum()
                         * 100
@@ -677,22 +683,22 @@ class OptimizerApp:
                     )
                     .sort_values("Percentage before optimization", ascending=False)
                 )
-                self.df_6["Percentage before optimization"] = self.df_6[
+            self.df_6["Percentage before optimization"] = self.df_6[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                self.df_6 = self.df_6.reindex(maturity_order).dropna()
+                ].apply(lambda x: np.round(x,2))
+            self.df_6 = self.df_6.reindex(maturity_order).dropna()
 
-                df_6["Percentage after optimization"] = df_6[
+            df_6["Percentage after optimization"] = df_6[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_6 = pd.merge(self.df_6, df_6, left_index=True, right_index=True)
+                ].apply(lambda x: np.round(x,2))
+            df_6 = pd.merge(self.df_6, df_6, left_index=True, right_index=True)
 
-                df_7 = (
+            df_7 = (
                     pd.DataFrame(output.groupby(["Ticker"])["final_wt"].sum() * 100)
                     .rename(columns={"final_wt": "Percentage after optimization"})
                     .sort_values("Percentage after optimization", ascending=False)
                 )
-                self.df_7 = (
+            self.df_7 = (
                     pd.DataFrame(
                         output.groupby(["Ticker"])["Notional Amount"].sum()
                         * 100
@@ -704,25 +710,27 @@ class OptimizerApp:
                     .sort_values("Percentage before optimization", ascending=False)
                     .dropna()
                 )
-                self.df_7["Percentage before optimization"] = self.df_7[
+            self.df_7["Percentage before optimization"] = self.df_7[
                     "Percentage before optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_7["Percentage after optimization"] = df_7[
+                ].apply(lambda x: np.round(x,2))
+            df_7["Percentage after optimization"] = df_7[
                     "Percentage after optimization"
-                ].apply(lambda x: f"{np.round(x,2)}%")
-                df_7 = pd.merge(self.df_7, df_7, left_index=True, right_index=True)
+                ].apply(lambda x: np.round(x,2))
+            df_7 = pd.merge(self.df_7, df_7, left_index=True, right_index=True)
+            print(df_7.head())
+            print(df_7.to_dict(orient="index"))
 
-                self.datagrid7 = DataGrid(
+            self.datagrid7 = DataGrid(
                     df_7.sort_index(ascending=True),
                     editable=True,
                     layout=ipw.Layout(width="auto", height="1000px"),
                 )
-                self.datagrid7.auto_fit_columns = True
+            self.datagrid7.auto_fit_columns = True
 
-                output["initial"] = output["Notional Amount"]
-                output["change"] = output["final"] - output["initial"]
+            output["initial"] = output["Notional Amount"]
+            output["change"] = output["final"] - output["initial"]
 
-                df_8 = pd.DataFrame(
+            df_8 = pd.DataFrame(
                     {
                         "Metrics": [
                             "Yield",
@@ -743,8 +751,8 @@ class OptimizerApp:
                             (output["WARF"] * output["final_wt"]).sum(),
                         ],
                     }
-                ).set_index("Metrics")
-                log.update(
+                )
+            log.update(
                     {
                         "Yield": (output["Yield"] * output["final_wt"]).sum(),
                         "Duration": (output["Duration"] * output["final_wt"]).sum(),
@@ -756,21 +764,21 @@ class OptimizerApp:
                     }
                 )
 
-                log["Simulation Name"] = self.simulation_name
+            log["Simulation Name"] = self.simulation_name
 
-                self.history.append(log)
-                hist_df = pd.DataFrame(self.history)
+            self.history.append(log)
+            hist_df = pd.DataFrame(self.history)
 
-                duplicates = hist_df.duplicated("Simulation Name")
-                counts = hist_df.groupby("Simulation Name").cumcount() + 1
-                hist_df.loc[duplicates, "Simulation Name"] = (
+            duplicates = hist_df.duplicated("Simulation Name")
+            counts = hist_df.groupby("Simulation Name").cumcount() + 1
+            hist_df.loc[duplicates, "Simulation Name"] = (
                     hist_df.loc[duplicates, "Simulation Name"]
                     + "_"
                     + counts.astype(str)
                 )
-                hist_df = hist_df.set_index("Simulation Name")
 
-                self.df_8 = (
+            # hist_df = hist_df.set_index("Simulation Name")
+            self.df_8 = (
                     pd.DataFrame(
                         {
                             "Metrics": [
@@ -801,19 +809,24 @@ class OptimizerApp:
                                 / output["Notional Amount"].sum(),
                             ],
                         }
-                    )
-                    .rename(columns={"Average": "Average before optimization"})
-                    .set_index("Metrics")
+                    ).rename(columns={"Average": "Average before optimization"})
+                    
                 )
 
-                df_8 = pd.merge(self.df_8, df_8, left_index=True, right_index=True)
-                df_8 = df_8.apply(lambda x: np.round(x, 2))
+            df_8 = pd.merge(self.df_8, df_8, left_index=True, right_index=True)
+            # round 2nd and 3rd columns to 2 decimal places
+            df_8["Average before optimization"] = df_8[
+                    "Average before optimization"
+                ].apply(lambda x: np.round(x, 2))
+            df_8["Average after optimization"] = df_8[
+                    "Average after optimization"
+                ].apply(lambda x: np.round(x, 2))
 
-                self.message = "Solution found !"
-                self.solution = True
+            self.message = "Solution found !"
+            self.solution = True
 
-                try:
-                    output = output[
+            try:
+                output = output[
                         [
                             "ISIN",
                             "SecDes",
@@ -841,8 +854,8 @@ class OptimizerApp:
                             "final",
                         ]
                     ]
-                except:
-                    output = output[
+            except:
+                output = output[
                         [
                             "ISIN",
                             "Ticker",
@@ -869,50 +882,60 @@ class OptimizerApp:
                         ]
                     ]
 
-                prev_pf = set(output[output["initial_wt"] != 0]["ISIN"])
-                curr_pf = set(output[output["final"] != 0]["ISIN"])
-                changes = len(prev_pf.symmetric_difference(curr_pf))
-                print("Turnover rate: ", changes / len(prev_pf) * 100)
+            prev_pf = set(output[output["initial_wt"] != 0]["ISIN"])
+            curr_pf = set(output[output["final"] != 0]["ISIN"])
+            changes = len(prev_pf.symmetric_difference(curr_pf))
+            print("Turnover rate: ", changes / len(prev_pf) * 100)
 
-                self.df_1 = df_1
-                self.df_2 = df_2
-                self.df_3 = df_3
-                self.df_4 = df_4
-                self.df_5 = df_5
-                self.df_6 = df_6
-                self.df_7 = df_7
-                self.df_8 = df_8
-                self.hist_df = hist_df
+            self.df_1 = df_1
+            self.df_2 = df_2
+            self.df_3 = df_3
+            self.df_4 = df_4
+            self.df_5 = df_5
+            self.df_6 = df_6
+            self.df_7 = df_7
+            self.df_8 = df_8
+            self.hist_df = hist_df
 
-            else:
+            print(self.df_8.head())
+            print(self.hist_df.head())
 
-                for key in bounds:
-                    try:
-                        bounds[key] = np.round(bounds[key], 2)
-                    except:
-                        for key_ in bounds[key]:
-                            bounds[key][key_] = np.round(bounds[key][key_], 2)
-                if metrics["recommendation"] == True:
-                    self.message = (
+        else:
+
+            for key in bounds:
+                try:
+                    bounds[key] = np.round(bounds[key], 2)
+                except:
+                    for key_ in bounds[key]:
+                        bounds[key][key_] = np.round(bounds[key][key_], 2)
+            if metrics["recommendation"] == True:
+                self.message = (
                         f"Optimal solution not found. Strict constraints : {[item for sublist in list(order .values()) for item in sublist] }."
                         + f"<br>Recommended thresholds: {bounds}"
                     )
 
-                else:
-                    self.message = "Optimization failed. Please try again."
+            else:
+                self.message = "Optimization failed. Please try again."
 
-        except Exception as e:
-            self.error = f"An error occurred: {str(e)}"
-            self.message = "Optimization failed. Please try again."
+    # except Exception as e:
+    #     self.error = f"An error occurred: {str(e)}"
+    #     self.message = "Optimization failed. Please try again."
+    #     print(e)
+
 
 # df = pd.read_csv(r"data.csv")
 
+# from output import *
 
 # O = OptimizerApp()
-# simulation_name="Simulation"
+# simulation_name = "Simulation"
 # # starting_data = O.get_starting_data(df)
 # optimizer_data = O.get_optimizer_data(
 #     metrics, buffers, filters_metrics, filters_groups, simulation_name, df
 # )
-# # print(starting_data['sectors'], starting_data['comparison'], starting_data['history'])
-# print(optimizer_data['sectors'], optimizer_data['comparison'], optimizer_data['history'])
+# # print(starting_data['comparison'], starting_data['history'])
+# print('comparison', optimizer_data['comparison'][:2])
+# print('history', optimizer_data['history'][:2])
+# print('error', optimizer_data['error'])
+# print('ticker', optimizer_data['tickers'][:2])
+# print('sectors', optimizer_data['sectors'][:2])
