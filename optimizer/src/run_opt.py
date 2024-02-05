@@ -2,15 +2,9 @@ import ipywidgets as ipw
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
-from ipywidgets import GridspecLayout, AppLayout, Layout, HBox
 from ipydatagrid import DataGrid
 from .optimizer import Optimizer
 import plotly.io as pio
-from IPython.display import display, HTML
-import io
-import pickle
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 import warnings
@@ -386,13 +380,6 @@ class OptimizerApp:
 
         metrics, buffers, filters_metrics, filters_groups = self.read_data()
 
-        # save all above prints to a txt file
-        # with open('metrics.py', 'w') as f:
-        #     print('metrics=',metrics, file=f)
-        #     print('buffers=',buffers, file=f)
-        #     print('filters_metrics=',filters_metrics, file=f)
-        #     print('filters_groups=',filters_groups, file=f)
-
         if metrics["MaxMin"] == "Maximize":
             maxmin = True
         else:
@@ -725,8 +712,6 @@ class OptimizerApp:
                     "Percentage after optimization"
                 ].apply(lambda x: np.round(x,2))
             df_7 = pd.merge(self.df_7, df_7, left_index=True, right_index=True)
-            print(df_7.head())
-            print(df_7.to_dict(orient="index"))
 
             self.datagrid7 = DataGrid(
                     df_7.sort_index(ascending=True),
@@ -905,8 +890,6 @@ class OptimizerApp:
             self.df_8 = df_8
             self.hist_df = hist_df
 
-            print(self.df_8.head())
-            print(self.hist_df.head())
 
         else:
 
@@ -924,11 +907,6 @@ class OptimizerApp:
 
             else:
                 self.message = "Optimization failed. Please try again."
-
-    # except Exception as e:
-    #     self.error = f"An error occurred: {str(e)}"
-    #     self.message = "Optimization failed. Please try again."
-    #     print(e)
 
 
 # df = pd.read_csv(r"data.csv")
