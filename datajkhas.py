@@ -1,20 +1,21 @@
 data = {
+    "simulationName": "Simulation",
     "objValue": {
         "action": "Maximize",
         "unit": "Yield",
-        "fieldOne": "Portfolio Sales",
-        "fieldTwo": [],
+        "fieldOne": "Purchases",
+        "fieldTwo": ["EUR IG"],
     },
     "prmValue": {
         "solver": "cvxpy",
         "unit": "Million",
-        "checks": True,
+        "checks": False,
         "fixedSize": True,
     },
     "fltValue": {
         "checkboxes": {
             "sectors": [
-                {"id": 1, "label": "Communication Services", "checked": True},
+                {"id": 1, "label": "Communication Services", "checked": False},
                 {"id": 2, "label": "Consumer Discretionary", "checked": True},
                 {"id": 3, "label": "Consumer Staples", "checked": True},
                 {"id": 4, "label": "Energy", "checked": True},
@@ -29,14 +30,15 @@ data = {
             "ratings": [
                 {"id": 1, "label": "AAA", "checked": True},
                 {"id": 2, "label": "AA+", "checked": True},
-                {"id": 3, "label": "AA-", "checked": True},
-                {"id": 4, "label": "A+", "checked": True},
-                {"id": 5, "label": "A", "checked": True},
-                {"id": 6, "label": "A-", "checked": True},
-                {"id": 7, "label": "BBB+", "checked": True},
-                {"id": 8, "label": "BBB", "checked": True},
-                {"id": 9, "label": "BBB-", "checked": True},
-                {"id": 10, "label": "BB+", "checked": True},
+                {"id": 3, "label": "AA", "checked": True},
+                {"id": 4, "label": "AA-", "checked": True},
+                {"id": 5, "label": "A+", "checked": True},
+                {"id": 6, "label": "A", "checked": True},
+                {"id": 7, "label": "A-", "checked": True},
+                {"id": 8, "label": "BBB+", "checked": True},
+                {"id": 9, "label": "BBB", "checked": True},
+                {"id": 10, "label": "BBB-", "checked": True},
+                {"id": 11, "label": "BB+", "checked": True},
             ],
             "seniority": [
                 {"id": 1, "label": "Sen", "checked": True},
@@ -88,7 +90,7 @@ data = {
                 {"id": 34, "label": "UNITED KINGDOM", "checked": True},
                 {"id": 35, "label": "UNITED STATES", "checked": True},
             ],
-            "esg_rating": [
+            "ESG_RATING": [
                 {"id": 1, "label": "AAA", "checked": True},
                 {"id": 2, "label": "AA", "checked": True},
                 {"id": 3, "label": "A", "checked": True},
@@ -619,38 +621,8 @@ data = {
                 {"id": 519, "label": "ZBH", "checked": True},
             ],
         },
-        "selectedData": [
-            {"id": 3, "name": "Duration", "value": [-0.3, 30]},
-            {"id": 6, "name": "ESG Score", "value": [-1, 11]},
-        ],
+        "selectedData": [],
     },
-    "consValue": [
-        [
-            {"id": 1, "name": "Ptf. size, bn", "value": [0, 10]},
-            {"id": 5, "name": "ASW, bps", "value": [0, 200]},
-            {"id": 2, "name": "Non zero weight", "value": [0, 200]},
-            {"id": 4, "name": "Yield, %", "value": [0, 200]},
-            {"id": 6, "name": "Duration", "value": [0, 200]},
-            {"id": 3, "name": "Turnover rate, %", "value": [0, 2000000]},
-            {"id": 7, "name": "Maturity, yrs", "value": [0, 200]},
-            {"id": 8, "name": "SCR, %", "value": [0, 200]},
-            {"id": 9, "name": "WARF", "value": [0, 200]},
-            {"id": 10, "name": "P&L", "value": [0, 200]},
-            {"id": 11, "name": "Weights", "value": [0, 200]},
-        ],
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-    ],
-    "esgconsValue": [
-        [
-            {"id": 1, "name": "ESG Score", "value": [0, 10]},
-            {"id": 2, "name": "CI, tCO2/EURmn", "value": [0, 200]},
-            {"id": 3, "name": "Decarb, %", "value": [0, 200]},
-        ],
-        [],
-    ],
+    "consValue": [[], [], [], [], [], [], [], []],
+    "esgconsValue": [[], []],
 }

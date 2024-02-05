@@ -321,6 +321,9 @@ class OptimizerApp:
                         if isinstance(value, (int, float)):
                             value = round(value, 2)
                         history.append({"key": key, "simulation": value})
+                        
+                last_element = history.pop(-1)
+                history.insert(0, last_element)
             except:
                 history = []
 
