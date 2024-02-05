@@ -189,7 +189,7 @@ class OptimizerApp:
         self.df_3["Percentage before optimization"] = self.df_3[
             "Percentage before optimization"
         ].apply(lambda x: np.round(x,2))
-        self.df_3 = self.df_3.reindex(bond_rating_order)
+        self.df_3 = self.df_3.reindex(bond_rating_order).dropna()
 
         self.df_4 = (
             pd.DataFrame(
@@ -303,19 +303,24 @@ class OptimizerApp:
 
         try:
             
-            
-            
-            
-            sectors = self.df_1.reset_index().rename(columns={"Sector of bonds_x": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
+            sectors = self.df_1.reset_index().rename(columns={"Sector of bonds_x": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao", "Sector of bonds": "name"}).to_dict(orient="records")
             seniorities = self.df_2.reset_index().rename(columns={"Seniority": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
             ratings = self.df_3.reset_index().rename(columns={"SBR": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
             esg_ratings = self.df_4.reset_index().rename(columns={"ESG_RATING": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
             countries = self.df_5.reset_index().rename(columns={"Issuer Country": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
             maturities = self.df_6.reset_index().rename(columns={"MaturityB": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
             tickers = self.df_7.reset_index().rename(columns={"Ticker": "name", "Percentage before optimization": "pbo", "Percentage after optimization": "pao"}).to_dict(orient="records")
-            comparison = self.df_8.reset_index().rename(columns={"Metrics_x": "name"}).to_dict(orient="records")
+            comparison = self.df_8.reset_index().rename(columns={"Metrics_x": "name", "Average before optimization": "abo", "Average after optimization": "aao", "Metrics": "name"}).to_dict(orient="records")
             try:
-                history = self.hist_df.reset_index().to_dict(orient="records")
+                old_history = self.hist_df.reset_index().to_dict(orient="records")
+                # Convert the data into the desired format
+                history = []
+                for hist in old_history:
+                    for key, value in hist.items():
+                        # Check if the value is a number and round it if it is
+                        if isinstance(value, (int, float)):
+                            value = round(value, 2)
+                        history.append({"key": key, "simulation": value})
             except:
                 history = []
 

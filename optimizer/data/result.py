@@ -1,22 +1,18 @@
 result_data = {
-	"Current": {
-		"table": [
+	"Current": [
 			{ "name": 'Result', "abo": 100, "aao": 100 },
 			{ "name": 'Sector 2', "abo": 200, "aao": 200 },
 			{ "name": 'Sector 3', "abo": 120, "aao": 110 },
 			{ "name": 'Sector 4', "abo": 180, "aao": 170 },
 			{ "name": 'Sector 5', "abo": 140, "aao": 130 }
-		]
-	},
-	"History": {
-		"table": [
+		],
+	"History":  [
 			{ "key": 'Sector 1', "simulation1": 103, "simulation2": 106 },
 			{ "key": 'Sector 2', "simulation1": 204, "simulation2": 205 },
 			{ "key": 'Sector 3', "simulation1": 125, "simulation2": 114 },
 			{ "key": 'Sector 4', "simulation1": 185, "simulation2": 174 },
 			{ "key": 'Sector 5', "simulation1": 146, "simulation2": 134 }
-		]
-	},
+		],
 	"Comparison": {
 		"x_axis": [
 			{ "name": 'solver', "value": 3 },

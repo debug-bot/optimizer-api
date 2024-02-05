@@ -7,7 +7,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils import file_response
 
 from .serializers import OptimizerFileSerializer
-from .models import OptimizerFile
+from .models import OptimizerData, OptimizerFile
 import pandas as pd
 from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg.utils import swagger_auto_schema
@@ -119,7 +119,34 @@ class TableViewSet(viewsets.ViewSet):
             )
 
 from .src.test import OptimizerApp
-from .src.metrics import metrics, buffers, filters_metrics, filters_groups 
+from .src.metrics import metrics, buffers, filters_metrics, filters_groups
+import json
+
+def initialize_history(history, simulation_round):
+    """
+    Initialize list a using keys from b and setting initial simulation values to 0.
+    """
+    a = []
+    for item_b in history:
+        key = item_b['key']
+        simulation_key = f'simulation{simulation_round}'
+        a.append({'key': key, simulation_key: item_b['simulation']})
+    return a
+
+def combine_lists(a, b, simulation_round):
+    """
+    Combine two lists a and b by matching 'key' and appending simulation values from b to a.
+    """
+    # Create a dictionary from list b for easy lookup
+    b_dict = {item['key']: item['simulation'] for item in b}
+
+    for item_a in a:
+        key = item_a['key']
+        simulation_key = f'simulation{simulation_round}'
+        simulation_value = b_dict.get(key, 0)  # Default value 0 if key not found in b
+        item_a[simulation_key] = simulation_value
+
+    return a
 class FieldsViewSet(viewsets.ViewSet):
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
@@ -149,10 +176,21 @@ class FieldsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"])
     def starting_api(self, request):
         file = OptimizerFile.objects.filter(user=request.user).first()
-        
+        if file is None:
+            return Response(
+                {"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        # read this csv file
         df = pd.read_csv(file.file)
+
         optimizer = OptimizerApp()
         starting_data = optimizer.get_starting_data(df)
+        
+        obj = OptimizerData.objects.filter(file=file).first()
+        # if obj.history already there which is json field then add new history to that
+        if obj:        
+            starting_data["history"] = obj.history
+        
 
         return Response(starting_data, status=status.HTTP_200_OK)
 
@@ -166,11 +204,12 @@ class FieldsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["post"])
     def run_optimizer(self, request):
         file = OptimizerFile.objects.filter(user=request.user).first()
+        if file is None:
+            return Response(
+                {"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST
+            )
         # read this csv file
         df = pd.read_csv(file.file)
-
-        print(df.head())
-
         data = request.data
         (
             metrics,
@@ -179,10 +218,35 @@ class FieldsViewSet(viewsets.ViewSet):
             filters_groups,
         ) = opt_data(data)
         app = OptimizerApp()
-        s_name = 'Simulation'
+        s_name = data.get("simulationName", "Simulation")
+        print(s_name)
 
         optimizer_data = app.get_optimizer_data(
             metrics, buffers, filters_metrics, filters_groups, s_name, df
         )
+        
+        if optimizer_data['solution'] == True:
+            obj = OptimizerData.objects.filter(file=file).first()
+            # if obj.history already there which is json field then add new history to that
+            if obj:
+                history = obj.history
+
+                # Initialize history if it's empty
+                if not history:
+                    history = initialize_history(optimizer_data['history'], 1)
+                else:
+                    i = len(history[0])
+                    history = combine_lists(history, optimizer_data['history'] , i)  
+                obj.history = history
+                obj.save()
+                    
+            else:
+                obj = OptimizerData.objects.create(
+                    file=file,
+                    history=initialize_history(optimizer_data['history'], 1),
+                )
+                
+        optimizer_data['history'] = obj.history
+        print(obj.history)
 
         return Response(optimizer_data, status=status.HTTP_200_OK)
