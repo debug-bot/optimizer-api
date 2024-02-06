@@ -233,6 +233,7 @@ class FieldsViewSet(viewsets.ViewSet):
             obj = OptimizerData.objects.filter(file=file).first()
             # if obj.history already there which is json field then add new history to that
             if obj:
+                
                 history = obj.history
 
                 # Initialize history if it's empty
@@ -249,6 +250,22 @@ class FieldsViewSet(viewsets.ViewSet):
                     file=file,
                     history=initialize_history(optimizer_data["history"], 1),
                 )
+            
+            # INPUTS TO OPTIMIZER #
+            obj.metrics = metrics
+            obj.buffers = buffers
+            obj.filters_metrics = filters_metrics
+            obj.filters_groups = filters_groups
+            
+            # OUTPUTS FROM OPTIMIZER #
+            obj.sectors = optimizer_data["sectors"]
+            obj.seniorities = optimizer_data["seniorities"]
+            obj.ratings = optimizer_data["ratings"]
+            obj.esg_ratings = optimizer_data["esg_ratings"]
+            obj.countries = optimizer_data["countries"]
+            obj.maturities = optimizer_data["maturities"]
+            obj.tickers = optimizer_data["tickers"]
+            obj.comparison = optimizer_data["comparison"]
 
             optimizer_data["history"] = obj.history
 
