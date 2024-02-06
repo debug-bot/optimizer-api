@@ -216,11 +216,6 @@ class FieldsViewSet(viewsets.ViewSet):
         # read this csv file
         df = pd.read_csv(file.file)
         data = request.data
-        # print(data)
-        # with open(
-        #     "f:/fiverr_project/python notebook/optimizer-api/datajkhas.py", "w"
-        # ) as file:
-        #     file.write(f"data = {data}")
         (
             metrics,
             buffers,
@@ -229,10 +224,9 @@ class FieldsViewSet(viewsets.ViewSet):
         ) = opt_data(data)
         app = OptimizerApp()
         s_name = data.get("simulationName", "Simulation")
-        print(s_name)
 
         optimizer_data = app.get_optimizer_data(
-            metrics, buffers, filters_metrics, filters_groups, s_name, df
+            metrics, buffers, filters_metrics, filters_groups, str(s_name), df
         )
 
         if optimizer_data["solution"] == True:

@@ -117,7 +117,7 @@ def opt_data(data):
     converted_filters_groups = convert_to_filters_groups(data["fltValue"]["checkboxes"])
 
     # Specify the file path and name
-    file_path = "f:/fiverr_project/python notebook/optimizer-api/output.py"
+    file_path = "temp/output.py"
 
     # Open the file in write mode
     with open(file_path, "w") as file:
