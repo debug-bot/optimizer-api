@@ -155,6 +155,15 @@ class FieldsViewSet(viewsets.ViewSet):
         data = filter_data
         return Response(data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(method="delete", responses={200: "Success"})
+    @action(detail=False, methods=["delete"])
+    def delete_history(self, request):
+        try:
+            OptimizerData.objects.filter(file__user=request.user).delete()
+            return Response({"success": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
     def constraints_api(self, request):
@@ -165,12 +174,6 @@ class FieldsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"])
     def esg_constraints_api(self, request):
         data = esg_constraints_data
-        return Response(data, status=status.HTTP_200_OK)
-
-    @swagger_auto_schema(method="get", responses={200: "Success"})
-    @action(detail=False, methods=["get"])
-    def result_api(self, request):
-        data = result_data
         return Response(data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(method="get", responses={200: "Success"})
@@ -254,7 +257,7 @@ class FieldsViewSet(viewsets.ViewSet):
                 )
 
             optimizer_data["history"] = obj.history
-            
+
         optimizer_data["plot_chart"] = plot_chart
 
         return Response(optimizer_data, status=status.HTTP_200_OK)
