@@ -1,8 +1,14 @@
 from .data.filter import units_list_data
 from .data.constraints import constraints_data
 from .data.esg_constraints import esg_constraints_data
+from copy import deepcopy
+
 
 def opt_data(data):
+    copied_constraints_data = deepcopy(constraints_data)
+    copied_esg_constraints_data = deepcopy(esg_constraints_data)
+    copied_units_list_data = deepcopy(units_list_data)
+
     flt_data_to_update = data["fltValue"]["selectedData"]
 
     def update_units_flt(selected_data_to_update, filter_units):
@@ -14,7 +20,7 @@ def opt_data(data):
                     break
         return filter_units
 
-    filter_units_updated = update_units_flt(flt_data_to_update, units_list_data)
+    filter_units_updated = update_units_flt(flt_data_to_update, copied_units_list_data)
 
     def update_units_cons(original_units, units_to_update):
 
@@ -28,9 +34,14 @@ def opt_data(data):
         return original_units
 
     # Example usage
-    updated_units_cons = update_units_cons(constraints_data["units"], data["consValue"])
+    updated_units_cons = update_units_cons(copied_constraints_data["units"], data["consValue"])
     updated_units_esg_cons = update_units_cons(
-        esg_constraints_data["units"], data["esgconsValue"]
+        copied_esg_constraints_data["units"], data["esgconsValue"]
+    )
+
+    print(
+        123423453456457578678968976989,
+        updated_units_cons[0][0]["value"],
     )
 
     matrics = {
@@ -110,7 +121,7 @@ def opt_data(data):
         return buffer_data
 
     # Convert the constraints_data to buffer data format
-    buffer_data_converted = convert_to_buffer_data(constraints_data)
+    buffer_data_converted = convert_to_buffer_data(copied_constraints_data)
 
     # Convert the checkboxes_data back to filters_groups format
     converted_filters_matrics = convert_to_filters_metrics(filter_units_updated)

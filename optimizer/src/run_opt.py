@@ -725,8 +725,8 @@ class OptimizerApp:
                     "Percentage after optimization"
                 ].apply(lambda x: np.round(x,2))
             df_7 = pd.merge(self.df_7, df_7, left_index=True, right_index=True)
-            print(df_7.head())
-            print(df_7.to_dict(orient="index"))
+            # print(df_7.head())
+            # print(df_7.to_dict(orient="index"))
 
             self.datagrid7 = DataGrid(
                     df_7.sort_index(ascending=True),
@@ -893,7 +893,7 @@ class OptimizerApp:
             prev_pf = set(output[output["initial_wt"] != 0]["ISIN"])
             curr_pf = set(output[output["final"] != 0]["ISIN"])
             changes = len(prev_pf.symmetric_difference(curr_pf))
-            print("Turnover rate: ", changes / len(prev_pf) * 100)
+            # print("Turnover rate: ", changes / len(prev_pf) * 100)
 
             self.df_1 = df_1
             self.df_2 = df_2
@@ -905,8 +905,8 @@ class OptimizerApp:
             self.df_8 = df_8
             self.hist_df = hist_df
 
-            print(self.df_8.head())
-            print(self.hist_df.head())
+            # print(self.df_8.head())
+            # print(self.hist_df.head())
 
         else:
 

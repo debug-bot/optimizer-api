@@ -14,7 +14,6 @@ certs_url = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@syste
 response = requests.get(certs_url)
 certs = response.json()
 
-print(certs)
 token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY5NjI5NzU5NmJiNWQ4N2…5jAxNAUkHuBF3I4EMOXq76cmm1v7ARHo7kD_8ylAYCD3MtVUQ"
 # Decode the token
 # decoded_token = jwt.decode(
@@ -32,7 +31,6 @@ def verify_firebase_token(id_token):
     body = {"idToken": id_token}
 
     response = requests.post(url, json=body, headers=headers)
-    print(response.json())
     if response.status_code == 200:
         return response.json()  # Token is valid
     else:

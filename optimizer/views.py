@@ -15,7 +15,6 @@ from . import swagger_params
 from .data.filter import filter_data
 from .data.constraints import constraints_data
 from .data.esg_constraints import esg_constraints_data
-from .data.result import plot_chart
 from .data.summary import summary_data
 from rest_framework.decorators import action
 from .opt_data import opt_data
@@ -148,6 +147,19 @@ def combine_lists(a, b, simulation_round):
     return a
 
 
+def create_plot_chart(history):
+    plot_chart = {"x_axis": [], "y_axis": []}
+
+    for entry in history[2:]:
+        key_name = entry["key"]
+        # Extracting the values dynamically, assuming the keys follow the pattern 'simulationX'
+        values = [value for key, value in entry.items() if key.startswith("simulation")]
+        plot_chart["x_axis"].append({"name": key_name, "value": values})
+        plot_chart["y_axis"].append({"name": key_name, "value": values})
+
+    return plot_chart
+
+
 class FieldsViewSet(viewsets.ViewSet):
     @swagger_auto_schema(method="get", responses={200: "Success"})
     @action(detail=False, methods=["get"])
@@ -180,6 +192,7 @@ class FieldsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"])
     def starting_api(self, request):
         file = OptimizerFile.objects.filter(user=request.user).first()
+
         if file is None:
             return Response(
                 {"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST
@@ -194,8 +207,8 @@ class FieldsViewSet(viewsets.ViewSet):
         # if obj.history already there which is json field then add new history to that
         if obj:
             starting_data["history"] = obj.history
-
-        starting_data["plot_chart"] = plot_chart
+            p_chart = create_plot_chart(obj.history)
+            starting_data["plot_chart"] = p_chart
 
         return Response(starting_data, status=status.HTTP_200_OK)
 
@@ -229,7 +242,6 @@ class FieldsViewSet(viewsets.ViewSet):
         ) = opt_data(data)
         app = OptimizerApp()
         s_name = data.get("simulationName", "Simulation")
-        print(s_name)
 
         optimizer_data = app.get_optimizer_data(
             metrics, buffers, filters_metrics, filters_groups, s_name, df
@@ -257,7 +269,7 @@ class FieldsViewSet(viewsets.ViewSet):
                 )
 
             optimizer_data["history"] = obj.history
-
-        optimizer_data["plot_chart"] = plot_chart
+            p_chart = create_plot_chart(obj.history)
+            optimizer_data["plot_chart"] = p_chart
 
         return Response(optimizer_data, status=status.HTTP_200_OK)
