@@ -39,10 +39,6 @@ def opt_data(data):
         copied_esg_constraints_data["units"], data["esgconsValue"]
     )
 
-    print(
-        123423453456457578678968976989,
-        updated_units_cons[0][0]["value"],
-    )
 
     matrics = {
         "MaxMin": data["objValue"]["action"],
